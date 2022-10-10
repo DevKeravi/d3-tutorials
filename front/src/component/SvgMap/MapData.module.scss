@@ -1,0 +1,15 @@
+.map-svg {
+  fill: #fff;
+  stroke: black;
+  path {
+    fill: #fff;
+    transition: fill 0.2s linear;
+    &:hover {
+      @for $i from 0 to 26 {
+        &:nth-child(#{$i}) {
+          fill: rgb(random(255), random(255), random(255));
+        }
+      }
+    }
+  }
+}
