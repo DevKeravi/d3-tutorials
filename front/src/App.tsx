@@ -1,6 +1,6 @@
 import styles from "./App.module.scss";
 import classNames from "classnames/bind";
-import SvgMap from "./component/SvgMap/SvgMap";
+import SvgMap from "./components/SvgMap/SvgMap";
 
 const cx = classNames.bind(styles);
 

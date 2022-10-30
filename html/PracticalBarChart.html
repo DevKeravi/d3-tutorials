@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        rect:hover {
+            stroke: #423f3b;
+            stroke-width: 2px;
+        }
+    </style>
+    <title>D3</title>
+</head>
+
+<body>
+    <h1>코로나 확진자 현황</h1>
+    <div class="canvas"></div>
+    <script>
+        const areaWidth = 800
+        const areaHeight = 800
+        const svg = d3.select('.canvas')
+            .append('svg')
+            .attr('width', areaWidth)
+            .attr('height', areaHeight)
+
+        const [mt, mb, mr, ml] = [50, 50, 50, 50]
+        d3.json('data/corona.json').then((data) => {
+            const graphWidth = areaWidth - ml - mr
+            const graphHeight = areaHeight - mt - mb
+            data.splice(0, 1)
+
+            const x = d3.scaleBand()
+                .domain(data.map(item => item.지역이름))
+                .range([0, graphWidth])
+                .padding(0.2)
+
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(data, d => d.확진자수)])
+                .range([graphHeight, 0])
+
+            const graph = svg.append('g')
+                .attr('width', graphWidth)
+                .attr('height', graphHeight)
+                .attr('transform', `translate(${ml},${mt})`)
+
+            const xAxisG = graph.append('g')
+                .attr('transform', `translate(0,${graphHeight})`)
+            const yAxisG = graph.append('g')
+
+            const bars = graph.selectAll('rect').data(data)
+
+            bars.enter()
+                .append('rect')
+                .attr('height', d => graphHeight - y(d.확진자수))
+                .attr('width', x.bandwidth)
+                .attr('fill', '	#525266')
+                .attr('x', d => x(d.지역이름))
+                .attr('y', d => y(d.확진자수))
+
+            const line = d3.line()
+                .x(d => x(d.지역이름) + 15)
+                .y(d => y(d.확진자수))
+                .curve(d3.curveBasis)
+
+            bars.enter()
+                .append('path')
+                .attr('fill', 'none')
+                .attr('stroke', '#ff6666')
+                .attr('stroke-width', '1px')
+                .attr('d', line(data))
+
+            bars.enter()
+                .append('text')
+                .attr('x', d => {
+                    const PadValue = 4
+                    const { 확진자수, 지역이름 } = d
+                    let pad = x(지역이름) + PadValue
+
+                    if (확진자수 >= 1000) {
+                        pad = x(지역이름) + PadValue * 1
+                    }
+                    else if (확진자수 >= 100) {
+                        pad = x(지역이름) + PadValue * 2
+                    }
+                    else if (확진자수 >= 10) {
+                        pad = x(지역이름) + PadValue * 3
+                    }
+                    return pad
+                })
+                .attr('y', d => y(d.확진자수) - 5)
+                .text(d => d.확진자수)
+                .style('font-size', '12px')
+
+
+
+            const xAxis = d3.axisBottom(x);
+            const yAxis = d3.axisLeft(y)
+                .ticks(3)
+                .tickFormat(d => d + ' 명')
+
+            xAxisG.call(xAxis)
+            yAxisG.call(yAxis)
+
+            xAxisG.selectAll('text')
+                .attr('fill', '#423f3b')
+                .attr('transform', 'rotate(-45)')
+                .attr('text-anchor', 'end')
+
+        }).catch((err) => {
+            console.log('loading json error')
+        })
+    </script>
+
+</body>
+
+</html>
